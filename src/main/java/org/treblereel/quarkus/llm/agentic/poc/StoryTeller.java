@@ -1,14 +1,13 @@
 package org.treblereel.quarkus.llm.agentic.poc;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import io.serverlessworkflow.api.types.Workflow;
-import io.serverlessworkflow.fluent.java.JavaWorkflowBuilder;
+import io.serverlessworkflow.fluent.func.FuncWorkflowBuilder;
 import io.serverlessworkflow.impl.WorkflowApplication;
 
 public class StoryTeller {
@@ -32,7 +31,7 @@ public class StoryTeller {
 
   public StoryTeller() {
     workflow =
-            JavaWorkflowBuilder.
+            FuncWorkflowBuilder.
                     workflow("testJavaCall")
                     .tasks(tasks -> tasks.callFn(callJava -> callJava.fn(creativeWriterProcessor))
                             .callFn(callJava -> callJava.fn(audienceEditorProcessor))

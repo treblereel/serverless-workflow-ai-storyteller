@@ -39,7 +39,7 @@
 
         <dependency>
             <groupId>io.serverlessworkflow</groupId>
-            <artifactId>serverlessworkflow-fluent-java</artifactId>
+            <artifactId>serverlessworkflow-fluent-func</artifactId>
             <version>${serverlessworkflow.version}</version>
         </dependency>
 

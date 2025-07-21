@@ -7,12 +7,8 @@ import java.util.concurrent.ExecutionException;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import io.serverlessworkflow.api.types.CallJava;
-import io.serverlessworkflow.api.types.CallTaskJava;
-import io.serverlessworkflow.api.types.Document;
-import io.serverlessworkflow.api.types.Task;
-import io.serverlessworkflow.api.types.TaskItem;
 import io.serverlessworkflow.api.types.Workflow;
+import io.serverlessworkflow.fluent.java.JavaWorkflowBuilder;
 import io.serverlessworkflow.impl.WorkflowApplication;
 
 public class StoryTeller {
@@ -36,37 +32,18 @@ public class StoryTeller {
 
   public StoryTeller() {
     workflow =
-            new Workflow()
-                    .withDocument(
-                            new Document().withNamespace("test").withName("testMap").withVersion("1.0"))
-                    .withDo(List.of(new TaskItem("creative_story_task",
-                                            new Task().withCallTask(
-                                                    new CallTaskJava(
-                                                            new CallJava.CallJavaFunction<>(creativeWriterProcessor)
-                                                    )
-                                            )
-                                    ),
-                                    new TaskItem("audience_story_task",
-                                            new Task().withCallTask(
-                                                    new CallTaskJava(
-                                                            new CallJava.CallJavaFunction<>(audienceEditorProcessor)
-                                                    )
-                                            )
-                                    ),
-                                    new TaskItem("style_story_task",
-                                            new Task().withCallTask(
-                                                    new CallTaskJava(
-                                                            new CallJava.CallJavaFunction<>(styleEditorProcessor)
-                                                    )
-                                            )
-                                    )
-                            )
-                    );
+            JavaWorkflowBuilder.
+                    workflow("testJavaCall")
+                    .doTasks(tasks ->
+                            tasks.callFn(callJava -> callJava.function(creativeWriterProcessor))
+                                    .callFn(callJava -> callJava.function(audienceEditorProcessor))
+                                    .callFn(callJava -> callJava.function(styleEditorProcessor)))
+                    .build();
   }
 
-  public void tellStory(Map<String, String> topic) throws ExecutionException, InterruptedException {
+  public Map<String, Object> tellStory(Map<String, String> topic) throws ExecutionException, InterruptedException {
     try (WorkflowApplication app = WorkflowApplication.builder().build()) {
-      app.workflowDefinition(workflow)
+      return app.workflowDefinition(workflow)
               .instance(topic)
               .start()
               .get()

@@ -34,10 +34,10 @@ public class StoryTeller {
     workflow =
             JavaWorkflowBuilder.
                     workflow("testJavaCall")
-                    .doTasks(tasks ->
-                            tasks.callFn(callJava -> callJava.function(creativeWriterProcessor))
-                                    .callFn(callJava -> callJava.function(audienceEditorProcessor))
-                                    .callFn(callJava -> callJava.function(styleEditorProcessor)))
+                    .tasks(tasks -> tasks.callFn(callJava -> callJava.fn(creativeWriterProcessor))
+                            .callFn(callJava -> callJava.fn(audienceEditorProcessor))
+                            .callFn(callJava -> callJava.fn(styleEditorProcessor)
+                    ))
                     .build();
   }
 

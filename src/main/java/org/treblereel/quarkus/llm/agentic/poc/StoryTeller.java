@@ -1,5 +1,12 @@
 package org.treblereel.quarkus.llm.agentic.poc;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import io.serverlessworkflow.api.types.CallJava;
 import io.serverlessworkflow.api.types.CallTaskJava;
 import io.serverlessworkflow.api.types.Document;
@@ -7,30 +14,27 @@ import io.serverlessworkflow.api.types.Task;
 import io.serverlessworkflow.api.types.TaskItem;
 import io.serverlessworkflow.api.types.Workflow;
 import io.serverlessworkflow.impl.WorkflowApplication;
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-@ApplicationScoped
 public class StoryTeller {
 
-  @Inject
-  CreativeWriterProcessor creativeWriterProcessor;
+  private final ChatModel BASE_MODEL = OpenAiChatModel.builder()
+          .apiKey(System.getenv("OPENAI_API_KEY"))
+          .modelName("gpt-4o")
+          .timeout(Duration.ofMinutes(10))
+          .temperature(0.0)
+          .logRequests(true)
+          .logResponses(true)
+          .build();
 
-  @Inject
-  AudienceEditorProcessor audienceEditorProcessor;
+  private final CreativeWriterProcessor creativeWriterProcessor = new CreativeWriterProcessor(BASE_MODEL);
 
-  @Inject
-  StyleEditorProcessor styleEditorProcessor;
+  private final AudienceEditorProcessor audienceEditorProcessor = new AudienceEditorProcessor(BASE_MODEL);
 
-  Workflow workflow;
+  private final StyleEditorProcessor styleEditorProcessor = new StyleEditorProcessor(BASE_MODEL);
 
-  @PostConstruct
-  void init() {
+  private final Workflow workflow;
+
+  public StoryTeller() {
     workflow =
             new Workflow()
                     .withDocument(

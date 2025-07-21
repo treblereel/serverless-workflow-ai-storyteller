@@ -1,23 +1,18 @@
 package org.treblereel.quarkus.llm.agentic.poc;
 
-import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-
-@QuarkusTest
 public class ApplicationTest {
 
 
-  @Inject
-  StoryTeller storyTeller;
+  private final StoryTeller storyTeller = new StoryTeller();
 
   @Test
-  public void test2() {
+  public void test() {
     Map<String, String> map = new HashMap<>();
     map.put("topic", "dragons and wizards");
     map.put("style", "fantasy");

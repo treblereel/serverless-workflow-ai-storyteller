@@ -2,14 +2,10 @@ package org.treblereel.quarkus.llm.agentic.poc;
 
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-import io.quarkiverse.langchain4j.RegisterAiService;
-import jakarta.enterprise.context.ApplicationScoped;
+
 
 public class Agents {
 
-
-    @ApplicationScoped
-    @RegisterAiService
     public interface CreativeWriter {
 
         @UserMessage("""
@@ -22,8 +18,6 @@ public class Agents {
     }
 
 
-    @ApplicationScoped
-    @RegisterAiService
     public interface AudienceEditor {
 
         @UserMessage("""
@@ -36,8 +30,6 @@ public class Agents {
     }
 
 
-    @ApplicationScoped
-    @RegisterAiService
     public interface StyleEditor {
 
         @UserMessage("""

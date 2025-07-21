@@ -1,16 +1,20 @@
 package org.treblereel.quarkus.llm.agentic.poc;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-
 import java.util.Map;
 import java.util.function.Function;
 
-@ApplicationScoped
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.AiServices;
+
+import static org.treblereel.quarkus.llm.agentic.poc.Agents.CreativeWriter;
+
 public class CreativeWriterProcessor implements Function<Map<String, String>, Map<String, String>> {
 
-  @Inject
-  Agents.CreativeWriter creativeWriter;
+  private final CreativeWriter creativeWriter;
+
+  public CreativeWriterProcessor(ChatModel model) {
+    creativeWriter = AiServices.create(CreativeWriter.class, model);
+  }
 
   public Map<String, String> apply(Map<String, String> ruleBook) {
     String story = creativeWriter.generateStory(ruleBook.get("topic"));

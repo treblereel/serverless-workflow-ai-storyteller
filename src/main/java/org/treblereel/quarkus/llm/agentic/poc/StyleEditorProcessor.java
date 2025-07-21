@@ -1,19 +1,21 @@
 package org.treblereel.quarkus.llm.agentic.poc;
 
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.treblereel.quarkus.llm.agentic.poc.Agents.*;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.AiServices;
 
-@ApplicationScoped
+import static org.treblereel.quarkus.llm.agentic.poc.Agents.StyleEditor;
+
 public class StyleEditorProcessor implements Function<Map<String, String>, Map<String, String>> {
 
-  @Inject
-  StyleEditor styleEditor;
+  private final StyleEditor styleEditor;
+
+  public StyleEditorProcessor(ChatModel model) {
+    styleEditor = AiServices.create(StyleEditor.class, model);
+  }
 
   public Map<String, String> apply(Map<String, String> ruleBook) {
     String story = styleEditor.editStory(ruleBook.get("story"),

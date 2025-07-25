@@ -1,18 +1,26 @@
 package org.treblereel.quarkus.llm.agentic.poc;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import dev.langchain4j.agentic.AgentServices;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import io.serverlessworkflow.ai.api.types.CallAgentAI;
+import io.serverlessworkflow.ai.api.types.CallTaskAIChatModel;
+import io.serverlessworkflow.api.types.Document;
+import io.serverlessworkflow.api.types.Output;
+import io.serverlessworkflow.api.types.Task;
+import io.serverlessworkflow.api.types.TaskItem;
 import io.serverlessworkflow.api.types.Workflow;
-import io.serverlessworkflow.fluent.func.FuncWorkflowBuilder;
+import io.serverlessworkflow.api.types.func.OutputAsFunction;
 import io.serverlessworkflow.impl.WorkflowApplication;
 
 public class StoryTeller {
 
-  private final ChatModel BASE_MODEL = OpenAiChatModel.builder()
+  public static final ChatModel BASE_MODEL = OpenAiChatModel.builder()
           .apiKey(System.getenv("OPENAI_API_KEY"))
           .modelName("gpt-4o")
           .timeout(Duration.ofMinutes(10))
@@ -21,32 +29,62 @@ public class StoryTeller {
           .logResponses(true)
           .build();
 
-  private final CreativeWriterProcessor creativeWriterProcessor = new CreativeWriterProcessor(BASE_MODEL);
+  private final Agents.CreativeWriter writer = AgentServices.agentBuilder(Agents.CreativeWriter.class)
+          .chatModel(BASE_MODEL)
+          .outputName("story")
+          .build();
 
-  private final AudienceEditorProcessor audienceEditorProcessor = new AudienceEditorProcessor(BASE_MODEL);
-
-  private final StyleEditorProcessor styleEditorProcessor = new StyleEditorProcessor(BASE_MODEL);
+  private final Agents.StyleEditor editor = AgentServices.agentBuilder(Agents.StyleEditor.class)
+          .chatModel(BASE_MODEL)
+          .outputName("story")
+          .build();
 
   private final Workflow workflow;
 
   public StoryTeller() {
     workflow =
-            FuncWorkflowBuilder.
-                    workflow("testJavaCall")
-                    .tasks(tasks -> tasks.callFn(callJava -> callJava.fn(creativeWriterProcessor))
-                            .callFn(callJava -> callJava.fn(audienceEditorProcessor))
-                            .callFn(callJava -> callJava.fn(styleEditorProcessor)
-                    ))
-                    .build();
+            new Workflow()
+                    .withDocument(
+                            new Document().withNamespace("test").withName("testMap").withVersion("1.0"))
+                    .withDo(List.of(new TaskItem("creative_story_task",
+                                            new Task().withCallTask(
+                                                    new CallTaskAIChatModel(
+                                                            new CallAgentAI(writer)
+                                                    )
+                                            )
+                                    ),
+                                    new TaskItem("audience_story_task",
+                                            new Task().withCallTask(
+                                                    new CallTaskAIChatModel(
+                                                            CallAgentAI.builder()
+                                                                    .withAgentClass(Agents.AudienceEditor.class)
+                                                                    .withChatModel(BASE_MODEL)
+                                                                    .withOutputName("story")
+                                                                    .build()
+                                                    )
+                                            )
+                                    ),
+                                    new TaskItem("style_story_task",
+                                            new Task().withCallTask(
+                                                    new CallTaskAIChatModel(
+                                                            new CallAgentAI(editor)
+                                                    )
+                                            )
+                                    )
+                            )
+                    ).withOutput(
+                            new Output()
+                                    .withAs(new OutputAsFunction().<Map<String,Object>, String>withFunction(map -> map.get("story").toString()))
+                    );
   }
 
-  public Map<String, Object> tellStory(Map<String, String> topic) throws ExecutionException, InterruptedException {
+  public String tellStory(Map<String, String> topic) throws ExecutionException, InterruptedException {
     try (WorkflowApplication app = WorkflowApplication.builder().build()) {
       return app.workflowDefinition(workflow)
               .instance(topic)
               .start()
               .get()
-              .asMap()
+              .asText()
               .orElseThrow();
     }
   }

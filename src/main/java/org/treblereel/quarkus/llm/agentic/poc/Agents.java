@@ -1,5 +1,6 @@
 package org.treblereel.quarkus.llm.agentic.poc;
 
+import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
@@ -14,6 +15,7 @@ public class Agents {
                 Return only the story and nothing else.
                 The topic is {{topic}}.
                 """)
+        @Agent("Generate a story based on the given topic")
         String generateStory(@V("topic") String topic);
     }
 
@@ -26,6 +28,7 @@ public class Agents {
             Return only the story and nothing else.
             The story is "{{story}}".
             """)
+        @Agent("Edit a story to better fit a given audience")
         String editStory(@V("story") String story, @V("audience") String audience);
     }
 
@@ -38,6 +41,7 @@ public class Agents {
                 Return only the story and nothing else.
                 The story is "{{story}}".
                 """)
+        @Agent("Edit a story to better fit a given style")
         String editStory(@V("story") String story, @V("style") String style);
     }
 

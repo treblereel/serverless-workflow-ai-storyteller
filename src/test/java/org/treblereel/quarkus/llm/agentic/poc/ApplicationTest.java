@@ -20,7 +20,7 @@ public class ApplicationTest {
     map.put("style", "fantasy");
     map.put("audience", "young adults");
 
-    String story = storyTeller.tellStory(map);
+    String story = storyTeller.tellStory(map).get("story").toString();
 
     System.out.println("Storytelling completed successfully.");
     System.out.println();
